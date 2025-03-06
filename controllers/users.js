@@ -1,8 +1,9 @@
 const bcrypt = require('bcrypt')
 const usersRouter = require('express').Router()
 const User = require('../models/user')
+const { authMiddleware } = require('../utils/middleware')
 
-usersRouter.get('/', async (request, response) => {
+usersRouter.get('/', authMiddleware, async (request, response) => {
     const users = await User.find({})
     response.json(users.map(u => u.toJSON()))
 })
