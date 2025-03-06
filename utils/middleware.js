@@ -1,4 +1,14 @@
 const jwt = require('jsonwebtoken')
+const logger = require('./logger')
+
+const requestLogger = (req, res, next) => {
+    const requestId = Date.now(); 
+    logger.info(`[${requestId}] Method: ${req.method}`);
+    logger.info(`[${requestId}] Path: ${req.path}`);
+    logger.info(`[${requestId}] Body: ${JSON.stringify(req.body)}`);
+    logger.info(`[${requestId}] ---`);
+    next()
+}
 
 
 const unknownEndpoint = (request, response) => {
@@ -27,6 +37,7 @@ const authMiddleware = (req, res, next) => {
 };
 
 module.exports = {
+    requestLogger,
     unknownEndpoint,
     errorHandler,
     authMiddleware

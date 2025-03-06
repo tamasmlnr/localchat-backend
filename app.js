@@ -6,6 +6,7 @@ const mongoose = require('mongoose')
 const usersRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
 const { MONGO_URI } = require('./utils/config');
+const { requestLogger } = require('./utils/middleware');
 
 const mongoUrl = MONGO_URI;
 console.log(`connecting to ${mongoUrl}`);
@@ -18,6 +19,7 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true }).then(() => {
 
 app.use(cors())
 app.use(express.json())
+app.use(requestLogger);
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
 app.use(express.static('assets'));
