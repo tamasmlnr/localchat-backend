@@ -9,6 +9,7 @@ const { MONGO_URI } = require('./utils/config');
 const { requestLogger } = require('./utils/middleware');
 const http = require('http');
 const setupSocketIO = require('./services/socket');
+const messagesRouter = require('./controllers/message')
 
 const mongoUrl = MONGO_URI;
 console.log(`connecting to ${mongoUrl}`);
@@ -27,6 +28,7 @@ app.use(express.json())
 app.use(requestLogger);
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
+app.use('/api/messages', messagesRouter)
 app.use(express.static('assets'));
 
 module.exports = app
