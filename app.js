@@ -8,7 +8,7 @@ const loginRouter = require('./controllers/login')
 const { MONGO_URI } = require('./utils/config');
 const { requestLogger } = require('./utils/middleware');
 const http = require('http');
-const setupSocketIO = require('./services/socket');
+const { setupSocketIO } = require('./services/socket');
 const messagesRouter = require('./controllers/message')
 
 const mongoUrl = MONGO_URI;

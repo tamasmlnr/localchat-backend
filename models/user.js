@@ -1,10 +1,8 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    username: {
+    _id: {
         type: String,
-        required: true,
-        unique: true
     },
     passwordHash: {
         type: String,
@@ -18,6 +16,14 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Conversation'
     }]
+});
+
+userSchema.set('toJSON', {
+    transform: (document, returnedObject) => {
+        returnedObject.username = returnedObject._id;
+        delete returnedObject.passwordHash;
+        delete returnedObject.__v;
+    }
 });
 
 const User = mongoose.model('User', userSchema);

@@ -6,8 +6,10 @@ const { SECRET } = require('../utils/config');
 
 loginRouter.post('/', async (request, response) => {
     const body = request.body;
+    console.log(body);
 
-    const user = await User.findOne({ username: body.username })
+    const user = await User.findById(body.username)
+    console.log(user);
     const passwordCorrect = user === null
         ? false
         : await bcrypt.compare(body.password, user.passwordHash)
@@ -27,7 +29,7 @@ loginRouter.post('/', async (request, response) => {
 
     response
         .status(200)
-        .send({ token, username: user.username, name: user.name, id: user._id })
+        .send({ token, username: user._id, name: user.name, id: user._id })
 })
 
 module.exports = loginRouter
