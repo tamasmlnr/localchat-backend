@@ -54,12 +54,41 @@ messagesRouter.get('/conversation/:conversationId', async (request, response) =>
         }
 
         const messages = await Message.find({ conversationId: conversation._id });
-
-        response.status(200).json(messages);
+        console.log({ conversation, messages });
+        response.status(200).json({ conversation, messages });
     } catch (error) {
         response.status(500).json({ error: 'Error fetching messages', details: error });
     }
 });
+
+messagesRouter.post('/conversation/users', async (request, response) => {
+    const { user1Id, user2Id } = request.body;
+
+    try {
+        let conversation = await Conversation.findOne({
+            users: { $all: [user1Id, user2Id] }
+        });
+
+        if (!conversation) {
+            conversation = new Conversation({
+                users: [user1Id, user2Id],
+                createdAt: new Date()
+            });
+
+            await conversation.save();
+
+            return response.status(201).json({ conversation, messages: [] });
+        }
+
+        const messages = await Message.find({ conversationId: conversation._id });
+        console.log({ conversation, messages });
+        response.status(200).json({ conversation, messages });
+    } catch (error) {
+        response.status(500).json({ error: 'Error fetching or creating conversation', details: error });
+    }
+});
+
+
 
 messagesRouter.get('/conversations/:userId', authMiddleware, async (request, response) => {
     const { userId } = request.params;
