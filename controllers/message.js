@@ -81,7 +81,7 @@ messagesRouter.post('/conversation/users', async (request, response) => {
         }
 
         const messages = await Message.find({ conversationId: conversation._id });
-        console.log({ conversation, messages });
+
         response.status(200).json({ conversation, messages });
     } catch (error) {
         response.status(500).json({ error: 'Error fetching or creating conversation', details: error });

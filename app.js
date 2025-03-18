@@ -22,6 +22,9 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true }).then(() => {
 
 const server = http.createServer(app);
 setupSocketIO(server);
+server.listen(3002, () => {
+    console.log(`Server listening on port 3002`);
+});
 
 app.use(cors())
 app.use(express.json())

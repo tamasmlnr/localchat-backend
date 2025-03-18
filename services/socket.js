@@ -28,6 +28,7 @@ const setupSocketIO = (server) => {
         });
 
         socket.on("get-messages", async (user1Id, user2Id) => {
+            console.log();
             try {
                 const { getMessagesBetweenUsers } = require("../controllers/message");
                 const messages = await getMessagesBetweenUsers(user1Id, user2Id);
