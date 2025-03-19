@@ -4,6 +4,7 @@ const Message = require("../models/message");
 let io = null;
 
 const setupSocketIO = (server) => {
+    console.log("setup called");
     io = socketIo(server, {
         cors: { origin: "*", methods: ["GET", "POST"] },
     });
@@ -16,12 +17,12 @@ const setupSocketIO = (server) => {
             console.log(`User ${userId} joined their room`);
         });
 
-        socket.on("send-message", async ({ senderId, receiverId, content }) => {
-            const message = new Message({ sender: senderId, receiver: receiverId, content });
+        socket.on("send-message", async ({ sender, receiver, content }) => {
+            const message = new Message({ sender, receiver, content });
 
             try {
                 await message.save();
-                io.to(receiverId).emit("receive-message", { senderId, content });
+                io.to(receiver).emit("receive-message", { sender, content });
             } catch (error) {
                 console.error("Error saving message:", error);
             }
