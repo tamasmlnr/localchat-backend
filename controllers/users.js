@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt')
 const usersRouter = require('express').Router()
 const User = require('../models/user')
 const { authMiddleware } = require('../utils/middleware')
+const { upload, uploadImage, deleteImage } = require('../services/cloudinaryStorage')
 
 usersRouter.get('/', authMiddleware, async (request, response) => {
     const users = await User.find({})
@@ -36,11 +37,54 @@ usersRouter.post('/', async (request, response, next) => {
 
         response.json(savedUser)
     } catch (exception) {
-        if (exception.code === 11000) { // Duplicate key error
+        if (exception.code === 11000) {
             return response.status(400).json({ error: "Username already exists." });
         }
         next(exception)
     }
 })
+
+usersRouter.post('/upload-photo', upload.single("image"), async (request, response, next) => {
+    console.log("upload called");
+    try {
+        const { userId } = request.body;
+        if (!userId) return response.status(400).json({ error: "User ID is required" });
+
+        const user = await User.findById(userId);
+        if (!user) return response.status(404).json({ error: "User not found" });
+
+        const imageData = await uploadImage(request);
+
+        user.profilePhotoUrl = imageData.imageUrl;
+        await user.save();
+
+        response.status(200).json({ message: "Profile photo updated", imageUrl: imageData.imageUrl });
+    } catch (error) {
+        next(error);
+    }
+});
+
+usersRouter.put('/update-photo', upload.single("image"), async (request, response, next) => {
+    console.log("upload called");
+    try {
+        const { userId, previousImageUrl } = request.body;
+        if (!userId) return response.status(400).json({ error: "User ID is required" });
+
+        const user = await User.findById(userId);
+        if (!user) return response.status(404).json({ error: "User not found" });
+
+        const imageData = await uploadImage(request);
+
+        user.profilePhotoUrl = imageData.imageUrl;
+        await user.save();
+        const previousImage = Image.findOne({ imageUrl: previousImageUrl });
+        console.log(previousImage);
+        deleteImage(previousImage.publicId)
+
+        response.status(200).json({ message: "Profile photo updated", imageUrl: imageData.imageUrl });
+    } catch (error) {
+        next(error);
+    }
+});
 
 module.exports = usersRouter;

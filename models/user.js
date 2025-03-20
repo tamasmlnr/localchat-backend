@@ -15,11 +15,12 @@ const userSchema = new mongoose.Schema({
     conversations: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Conversation'
-    }]
+    }],
+    profilePhotoUrl: { type: String }
 });
 
 userSchema.set('toJSON', {
-    transform: (document, returnedObject) => {
+    transform: (_, returnedObject) => {
         returnedObject.username = returnedObject._id;
         delete returnedObject.passwordHash;
         delete returnedObject.__v;
