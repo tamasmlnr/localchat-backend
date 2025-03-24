@@ -10,7 +10,7 @@ usersRouter.get('/', authMiddleware, async (request, response) => {
     response.json(users.map(u => u.toJSON()))
 })
 
-usersRouter.get('/:id', async (request, response) => {
+usersRouter.get('/:id', authMiddleware, async (request, response) => {
     User.findById(request.params.id)
         .then(user => {
             if (user) {
@@ -21,6 +21,40 @@ usersRouter.get('/:id', async (request, response) => {
         })
         .catch(error => response.status(400).status)
 })
+
+usersRouter.put('/:id', authMiddleware, async (request, response) => {
+    try {
+        let userData;
+        if (request.body.body && typeof request.body.body === 'string') {
+            userData = JSON.parse(request.body.body);
+        } else {
+            userData = request.body;
+        }
+
+        if (userData.location) {
+            userData.location = {
+                latitude: userData.location.latitude,
+                longitude: userData.location.longitude
+            };
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            request.params.id,
+            userData,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedUser) {
+            return response.status(404).json({ error: 'User not found' });
+        }
+
+        response.json(updatedUser.toJSON());
+    } catch (e) {
+        next(e)
+    }
+});
+
+
 
 usersRouter.post('/', async (request, response, next) => {
     try {
