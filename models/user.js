@@ -18,31 +18,25 @@ const userSchema = new mongoose.Schema({
     }],
     profilePhotoUrl: { type: String },
     location: {
-        latitude: {
-            type: Number,
-            required: true,
-        },
-        longitude: {
-            type: Number,
-            required: true,
-        },
-    },
+        type: { type: String, enum: ['Point'], default: 'Point' },
+        coordinates: {
+            type: [Number],
+            default: [0, 0],
+            required: false
+        }
+    }
+
 });
+
+
+userSchema.index({ location: '2dsphere' });
+
 
 userSchema.set('toJSON', {
     transform: (_, returnedObject) => {
         returnedObject.username = returnedObject._id;
         delete returnedObject.passwordHash;
         delete returnedObject.__v;
-
-        if (returnedObject.location) {
-            if (returnedObject.location.latitude && returnedObject.location.latitude.$numberDecimal) {
-                returnedObject.location.latitude = returnedObject.location.latitude.toString();
-            }
-            if (returnedObject.location.longitude && returnedObject.location.longitude.$numberDecimal) {
-                returnedObject.location.longitude = returnedObject.location.longitude.toString();
-            }
-        }
     }
 });
 

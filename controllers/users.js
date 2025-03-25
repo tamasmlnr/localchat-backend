@@ -10,6 +10,42 @@ usersRouter.get('/', authMiddleware, async (request, response) => {
     response.json(users.map(u => u.toJSON()))
 })
 
+usersRouter.get('/near-location', authMiddleware, async (request, response, next) => {
+    try {
+        const { latitude, longitude } = request.query;
+        if (!latitude || !longitude) {
+            return response.status(400).json({ error: "Latitude and longitude are required" });
+        }
+        const lat = parseFloat(latitude);
+        const lng = parseFloat(longitude);
+
+        const users = await User.find({
+            location: {
+                $near: {
+                    $geometry: {
+                        type: "Point",
+                        coordinates: [lat, lng]
+                    },
+                    $maxDistance: 10000
+                }
+            }
+        })
+            .select('-passwordHash -__v')
+            .exec();
+
+        const transformedUsers = users.map(user => ({
+            ...user.toObject(),
+            username: user._id
+        }));
+
+        response.json(transformedUsers);
+    } catch (error) {
+        next(error);
+    }
+});
+
+
+
 usersRouter.get('/:id', authMiddleware, async (request, response) => {
     User.findById(request.params.id)
         .then(user => {
@@ -22,7 +58,7 @@ usersRouter.get('/:id', authMiddleware, async (request, response) => {
         .catch(error => response.status(400).status)
 })
 
-usersRouter.put('/:id', authMiddleware, async (request, response) => {
+usersRouter.put('/:id', authMiddleware, async (request, response, next) => {
     try {
         let userData;
         if (request.body.body && typeof request.body.body === 'string') {
@@ -31,10 +67,10 @@ usersRouter.put('/:id', authMiddleware, async (request, response) => {
             userData = request.body;
         }
 
-        if (userData.location) {
+        if (userData.location && userData.location.latitude && userData.location.longitude) {
             userData.location = {
-                latitude: userData.location.latitude,
-                longitude: userData.location.longitude
+                type: "Point",
+                coordinates: [userData.location.longitude, userData.location.latitude]
             };
         }
 
@@ -50,9 +86,10 @@ usersRouter.put('/:id', authMiddleware, async (request, response) => {
 
         response.json(updatedUser.toJSON());
     } catch (e) {
-        next(e)
+        next(e);
     }
 });
+
 
 
 
