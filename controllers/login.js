@@ -5,7 +5,6 @@ const User = require('../models/user')
 const { SECRET } = require('../utils/config');
 
 loginRouter.post('/', async (request, response) => {
-    console.log("login");
     const body = request.body;
     const user = await User.findById(body.username)
 

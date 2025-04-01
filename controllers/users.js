@@ -19,22 +19,25 @@ usersRouter.get('/near-location', authMiddleware, async (request, response, next
         const lat = parseFloat(latitude);
         const lng = parseFloat(longitude);
 
-        const users = await User.find({
-            location: {
-                $near: {
-                    $geometry: {
-                        type: "Point",
-                        coordinates: [lat, lng]
-                    },
-                    $maxDistance: 10000
+        const users = await User.aggregate([
+            {
+                $geoNear: {
+                    near: { type: "Point", coordinates: [lng, lat] },
+                    distanceField: "distance",
+                    maxDistance: 100000,
+                    spherical: true
+                }
+            },
+            {
+                $project: {
+                    passwordHash: 0,
+                    __v: 0
                 }
             }
-        })
-            .select('-passwordHash -__v')
-            .exec();
+        ]);
 
         const transformedUsers = users.map(user => ({
-            ...user.toObject(),
+            ...user,
             username: user._id
         }));
 
@@ -43,8 +46,6 @@ usersRouter.get('/near-location', authMiddleware, async (request, response, next
         next(error);
     }
 });
-
-
 
 usersRouter.get('/:id', authMiddleware, async (request, response) => {
     User.findById(request.params.id)
@@ -93,7 +94,7 @@ usersRouter.put('/:id', authMiddleware, async (request, response, next) => {
 
 
 
-usersRouter.post('/', async (request, response, next) => {
+usersRouter.post('/', authMiddleware, async (request, response, next) => {
     try {
         const body = request.body
 
@@ -117,7 +118,6 @@ usersRouter.post('/', async (request, response, next) => {
 })
 
 usersRouter.post('/upload-photo', upload.single("image"), async (request, response, next) => {
-    console.log("upload called");
     try {
         const { userId } = request.body;
         if (!userId) return response.status(400).json({ error: "User ID is required" });

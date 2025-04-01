@@ -43,7 +43,7 @@ messagesRouter.post("/", authMiddleware, async (request, response) => {
     }
 });
 
-messagesRouter.get('/conversation/:conversationId', async (request, response) => {
+messagesRouter.get('/conversation/:conversationId', authMiddleware, async (request, response) => {
     const { conversationId } = request.params;
 
     try {
@@ -54,14 +54,13 @@ messagesRouter.get('/conversation/:conversationId', async (request, response) =>
         }
 
         const messages = await Message.find({ conversationId: conversation._id });
-        console.log({ conversation, messages });
         response.status(200).json({ conversation, messages });
     } catch (error) {
         response.status(500).json({ error: 'Error fetching messages', details: error });
     }
 });
 
-messagesRouter.post('/conversation/users', async (request, response) => {
+messagesRouter.post('/conversation/users', authMiddleware, async (request, response) => {
     const { user1Id, user2Id } = request.body;
 
     try {
@@ -161,10 +160,6 @@ messagesRouter.get('/conversations/:userId', authMiddleware, async (request, res
                 },
             },
         ]);
-
-        if (conversations.length === 0) {
-            return response.status(404).json({ error: 'No conversations found' });
-        }
 
         response.status(200).json(conversations);
     } catch (error) {

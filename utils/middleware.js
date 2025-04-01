@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken')
-const logger = require('./logger')
+const logger = require('./logger');
+const e = require('express');
+const { SECRET } = require('../utils/config');
 
 const requestLogger = (req, res, next) => {
     if (req.path.includes('/socket.io/') && req.method === 'GET') {
@@ -36,9 +38,35 @@ const errorHandler = (error, request, response, next) => {
 
 
 const authMiddleware = (req, res, next) => {
-    next()
-};
+    const authHeader = req.header('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+            error: 'Authentication token missing or invalid format'
+        })
+    }
+    const token = authHeader.replace('Bearer ', '')
 
+    try {
+        const decodedToken = jwt.verify(token, SECRET)
+
+        req.user = {
+            id: decodedToken.id,
+            username: decodedToken.username
+        }
+
+        next()
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({
+                error: 'Token expired'
+            })
+        }
+
+        return res.status(401).json({
+            error: 'Invalid token'
+        })
+    }
+}
 module.exports = {
     requestLogger,
     unknownEndpoint,
